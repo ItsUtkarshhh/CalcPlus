@@ -1,6 +1,6 @@
 // Accessing screen!
 let display = document.getElementById('screen-side');
-display.textContent = 0;
+display.textContent = "0";
 let currentInput = "";
 
 // Accessing buttons!
@@ -12,18 +12,36 @@ let nums = document.querySelectorAll('.num-btn');
 let point = document.getElementById('numPoint');
 let operators = document.querySelectorAll('.op-btn');
 
-// Operations!
+// Numericals!
 nums.forEach(button => {
     button.addEventListener('click', () => {
-        if(button.textContent == point.textContent && currentInput == "") {
-            currentInput += "0."
+        value = button.textContent;
+        let lastChar = currentInput[currentInput.length - 1];
+
+        // Case 1 : If last character entered is a point, then consecutively there should not be a point again.
+        if(lastChar == '.' && value == '.') {
+            // Do nothing
+        }
+        // Case 2 : If the cal is at a default state or is just after an operator, then on entering point, it should print 0. with it, not just point.
+        else if(((display.textContent == "0" && currentInput == "") && value == '.') || ["%", "/", "*", "+", "-"].includes(lastChar)) {
+            currentInput += "0.";
             display.textContent = currentInput;
         }
-        currentInput += button.textContent;
-        display.textContent = currentInput;
+        // Case 3 : Between 2 operators, there should not be 2 points anywhere, only single point is allowed.
+        // else if() {
+        //     currentInput += value;
+        //     display.textContent = currentInput;
+        // }
+        else {
+            currentInput += value;
+            display.textContent = currentInput;
+        }
+
     });
 });
 
+
+// Operations!
 operators.forEach(button => {
     button.addEventListener('click', () => {
         let newOp = button.textContent;
@@ -45,7 +63,7 @@ operators.forEach(button => {
 // Reset!
 reset.addEventListener('click', () => {
     currentInput = "";
-    display.textContent = 0;
+    display.textContent = "0";
 })
 
 // Backspace!
@@ -56,5 +74,11 @@ backspace.addEventListener('click', () => {
     }
     else {
         display.textContent = "0";
+        currentInput = "";
     }
 })
+
+// Equals!
+equals.addEventListener('click', () => {
+    
+});
