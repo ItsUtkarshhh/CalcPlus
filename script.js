@@ -13,33 +13,40 @@ let point = document.getElementById('numPoint');
 let operators = document.querySelectorAll('.op-btn');
 
 // Numericals!
+function getCurrentNumber(input) {
+    let operators = ['%', '*', '+', '-', '/'];
+    let lastOpIndex = -1;
+
+    operators.forEach(op => {
+        let index = input.lastIndexOf(op);
+        if(index > lastOpIndex) lastOpIndex = index;
+    })
+
+    return input.slice(lastOpIndex + 1);
+}
+
 nums.forEach(button => {
     button.addEventListener('click', () => {
         value = button.textContent;
         let lastChar = currentInput[currentInput.length - 1];
 
-        // Case 1 : If last character entered is a point, then consecutively there should not be a point again.
-        if(lastChar == '.' && value == '.') {
-            // Do nothing
-        }
-        // Case 2 : If the cal is at a default state or is just after an operator, then on entering point, it should print 0. with it, not just point.
-        else if(((display.textContent == "0" && currentInput == "") && value == '.') || ["%", "/", "*", "+", "-"].includes(lastChar)) {
-            currentInput += "0.";
+        if(value == '.') {
+            let currentNum = getCurrentNumber(currentInput);
+
+            if((display.textContent == "0" && currentInput == "") || (["%", "/", "*", "+", "-"].includes(lastChar))) {
+                currentInput += "0.";
+            }
+            else if(!currentNum.includes('.')) {
+                currentInput += value;
+            }
             display.textContent = currentInput;
         }
-        // Case 3 : Between 2 operators, there should not be 2 points anywhere, only single point is allowed.
-        // else if() {
-        //     currentInput += value;
-        //     display.textContent = currentInput;
-        // }
         else {
             currentInput += value;
             display.textContent = currentInput;
         }
-
     });
 });
-
 
 // Operations!
 operators.forEach(button => {
@@ -79,6 +86,30 @@ backspace.addEventListener('click', () => {
 })
 
 // Equals!
-equals.addEventListener('click', () => {
+function evaluate(input) {
+    let nums = [];
+    let ops = [];
+
+    let i = 0;
+    while(i < input.length) {
+        let numStr = "";
+
+        while((input[i] >= 0 && input[i] <= 9) || input[i] == '.') {
+            numStr += input[i];
+            i++;
+        }
+
+        if(numStr !== "") {
+            nums.push(Number(numStr));
+        }
+
+        if(i < input.length && ["%", "/", "*", "+", "-"].includes(input[i])) {
+            ops.push(input[i]);
+            i++;
+        }
+    }
     
-});
+    
+}
+
+equals.addEventListener('click', () => evaluate(currentInput));
