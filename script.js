@@ -1,16 +1,21 @@
 // Accessing screen!
-let display = document.getElementById('screen-side');
+let display = document.querySelector('.calculations');
 display.textContent = "0";
 let currentInput = "";
 
 // Accessing buttons!
-let reset = document.getElementById('reset-btn');
-let backspace = document.getElementById('back-btn');
-let equals = document.getElementById('eq-btn');
+let reset = document.getElementById('reset-btn'); // "document.getElementById('reset-btn');" this part of code has returned a matched the HTML element.
+let backspace = document.getElementById('back-btn'); // "document.getElementById('back-btn');" this part of code has returned a matched part HTML element.
+let equals = document.getElementById('eq-btn'); // "document.getElementById('eq-btn');" this part of code has returned a matched part HTML element.
 
-let nums = document.querySelectorAll('.num-btn');
-let point = document.getElementById('numPoint');
-let operators = document.querySelectorAll('.op-btn');
+let nums = document.querySelectorAll('.num-btn'); // "document.querySelectorAll('.num-btn');" this part of code has returned an array of matched HTML elements.
+let point = document.getElementById('numPoint'); // "document.getElementById('numPoint');" this part of code has returned a matched HTML element.
+let operators = document.querySelectorAll('.op-btn'); // "document.querySelectorAll('.num-btn');" this part of code has returned an array of matched HTML elements.
+
+// Scrolling towards the right edge
+function scrollToRightEdge() {
+    display.scrollLeft = display.scrollWidth;
+}
 
 // Numericals!
 function getCurrentNumber(input) {
@@ -40,10 +45,12 @@ nums.forEach(button => {
                 currentInput += value;
             }
             display.textContent = currentInput;
+            scrollToRightEdge();
         }
         else {
             currentInput += value;
             display.textContent = currentInput;
+            scrollToRightEdge();
         }
     });
 });
@@ -56,9 +63,16 @@ operators.forEach(button => {
         if (["%", "/", "*", "+", "-"].includes(lastChar)) {
             currentInput = currentInput.slice(0, -1) + newOp;
             display.textContent = currentInput;
+            scrollToRightEdge();
+        }
+        else if(lastChar == '.') {
+            currentInput += '0' + newOp;
+            display.textContent = currentInput;
+            scrollToRightEdge();
         }
         else if(currentInput == "" || display.textContent == 0) {
             display.textContent = 0;
+            scrollToRightEdge();
         }
         else {
             currentInput += newOp;
@@ -71,6 +85,7 @@ operators.forEach(button => {
 reset.addEventListener('click', () => {
     currentInput = "";
     display.textContent = "0";
+    scrollToRightEdge();
 })
 
 // Backspace!
@@ -78,38 +93,101 @@ backspace.addEventListener('click', () => {
     if(currentInput.length > 0) {
         currentInput = currentInput.slice(0,-1);
         display.textContent = currentInput || "0";
+        scrollToRightEdge();
     }
     else {
         display.textContent = "0";
+        scrollToRightEdge();
         currentInput = "";
     }
 })
 
 // Equals!
-function evaluate(input) {
-    let nums = [];
-    let ops = [];
+function tokenize(input) {
+    let tokens = [];
+    let numBuffer = "";
 
-    let i = 0;
-    while(i < input.length) {
-        let numStr = "";
-
-        while((input[i] >= 0 && input[i] <= 9) || input[i] == '.') {
-            numStr += input[i];
-            i++;
+    for(let char of input) {
+        if("1234567890.".includes(char)) {
+            numBuffer += char;
         }
-
-        if(numStr !== "") {
-            nums.push(Number(numStr));
-        }
-
-        if(i < input.length && ["%", "/", "*", "+", "-"].includes(input[i])) {
-            ops.push(input[i]);
-            i++;
+        else {
+            if(numBuffer) {
+                tokens.push(numBuffer);
+                numBuffer = "";
+            }
+            tokens.push(char);
         }
     }
-    
-    
+    if(numBuffer) tokens.push(numBuffer);
+    return tokens;
 }
 
-equals.addEventListener('click', () => evaluate(currentInput));
+function infixToPostfix(tokens) {
+    const precedence = {
+        '+': 1,
+        '-': 1,
+        '*': 2,
+        '/': 2,
+        '%': 2
+    };
+
+    const output = [];
+    const operators = [];
+
+    tokens.forEach(token => {
+        if (!isNaN(token)) {
+            output.push(token);
+        } else if ("+-*/%".includes(token)) {
+            while (operators.length && precedence[operators[operators.length - 1]] >= precedence[token]) {
+                output.push(operators.pop());
+            }
+            operators.push(token);
+        }
+    });
+
+    while (operators.length) {
+        output.push(operators.pop());
+    }
+
+    return output;
+}
+
+function evaluatePostfix(postfixTokens) {
+    const stack = [];
+
+    postfixTokens.forEach(token => {
+        if (!isNaN(token)) {
+            stack.push(parseFloat(token));
+        } else {
+            let b = stack.pop();
+            let a = stack.pop();
+            switch (token) {
+                case '+': stack.push(a + b); break;
+                case '-': stack.push(a - b); break;
+                case '*': stack.push(a * b); break;
+                case '/': stack.push(a / b); break;
+                case '%': stack.push(a % b); break;
+            }
+        }
+    });
+
+    return stack[0];
+}
+
+function evaluation(currentInput) {
+    try {
+        const tokens = tokenize(currentInput);
+        const postfix = infixToPostfix(tokens);
+        const result = evaluatePostfix(postfix);
+        display.textContent = result;
+        scrollToRightEdge();
+        currentInput = result.toString(); // allow chaining like 5 + 2 = 7 + 3
+    } catch (error) {
+        display.textContent = "Error";
+        scrollToRightEdge();
+        currentInput = "";
+    }
+}
+
+equals.addEventListener('click', () => evaluation(currentInput));

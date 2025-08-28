@@ -54,12 +54,28 @@ h1 {
     box-shadow: 2px 2px black;
     border-radius: 6px;
     display: flex;
+    flex-wrap: wrap;
     flex-direction: column;
     justify-content: end;
     align-items: end;
-    padding-right: 30px;
+    padding-right: 15px;
+    padding-left: 15px;
     padding-bottom: 20px;
     font-size: 30px;
+}
+
+.scroll-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+.calculations {
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 100%;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    display: inline-block; /* prevents wrapping */
+    white-space: nowrap;   /* keeps content in one line */
 }
 
 #btns-side {
